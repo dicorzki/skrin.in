@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skrin.in</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 800: '#1e293b', 900: '#0f172a', 950: '#0b1020' },
+                        violet: { 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
+                        purple: { 600: '#9333ea', 700: '#7e22ce' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b1020;
+            color: #e2e8f0;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Efek cermin khusus buat kamera depan */
+        .mirror-mode {
+            transform: scaleX(-1);
+            -webkit-transform: scaleX(-1);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+    <header class="bg-violet-800 border-b-4 border-violet-900 shadow-md relative z-10">
+        <div class="mx-auto max-w-screen-xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="text-white font-bold text-lg flex items-center gap-3">
+                <i class="fa-solid fa-eye text-2xl"></i>
+                <span class="tracking-wide">Sistem Klasifikasi Katarak Berbasis Deep Learning</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <div class="text-right hidden sm:block">
+                    <div class="font-bold text-white text-[12px]">DICO FATHATUL RIZKI</div>
+                    <div class="text-violet-300 font-mono text-[11px]">22.11.4656</div>
+                </div>
+                <div
+                    class="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center border-2 border-violet-400 text-white">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-screen-xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        <div class="border-b border-slate-800 pb-4">
+            <h1 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> Uji Prediksi Model
+            </h1>
+            <p class="text-xs text-slate-400 font-medium mt-1">Sistem inferensi menggunakan arsitektur MobileNetV2</p>
+        </div>
+
+        <section
+            class="bg-slate-900 rounded-3xl border border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] overflow-hidden">
+            <div class="p-6 sm:p-8">
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="flex flex-col gap-6">
+                        <div>
+                            <div
+                                class="inline-flex text-[10px] font-bold uppercase tracking-widest bg-purple-900/40 text-purple-300 px-2 py-1 rounded mb-3">
+                                Input Citra
+                            </div>
+                            <h2 class="text-lg font-bold text-slate-100 leading-snug mb-3">
+                                Unggah Gambar Mata
+                            </h2>
+                            <p class="text-sm text-slate-400 mb-4">Pastikan gambar fokus pada area lensa mata dengan
+                                pencahayaan yang cukup untuk hasil maksimal.</p>
+
+                            <form id="uploadForm" class="space-y-4">
+                                <label id="dropZone" for="fileInput"
+                                    class="flex flex-col items-center justify-center w-full h-48 border-2 border-slate-700 border-dashed rounded-2xl cursor-pointer bg-slate-800/50 hover:bg-slate-800 hover:border-purple-500 transition-all relative overflow-hidden">
+                                    <div id="uploadPlaceholder"
+                                        class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-purple-400 mb-3"></i>
+                                        <p class="mb-1 text-sm text-slate-300"><span class="font-bold">Klik untuk
+                                                unggah</span> atau drag and drop</p>
+                                        <p class="text-xs text-slate-500">JPG, JPEG, PNG (Max. 16MB)</p>
+                                    </div>
+
+                                    <img id="previewUpload" src=""
+                                        class="hidden absolute inset-0 w-full h-full object-cover" alt="Preview">
+
+                                    <input id="fileInput" type="file" class="hidden" accept="image/*" />
+                                </label>
+
+                                <div class="mt-4 flex gap-2 w-full">
+                                    <button type="button" id="btnCamera"
+                                        class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm font-bold transition-colors border border-slate-600 shadow-lg">
+                                        <i class="fa-solid fa-camera mr-2"></i> Buka Kamera
+                                    </button>
+                                </div>
+
+                                <div id="cameraModal"
+                                    class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
+                                    <div
+                                        class="bg-slate-800 p-5 rounded-3xl w-full max-w-md border border-slate-700 shadow-2xl">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-white font-bold text-lg">Ambil Foto Mata</h3>
+                                            <div class="flex gap-4 items-center">
+                                                <button type="button" id="btnFlip"
+                                                    class="text-slate-400 hover:text-white transition-colors">
+                                                    <i class="fa-solid fa-camera-rotate text-xl"></i>
+                                                </button>
+                                                <button type="button" id="btnCloseCamera"
+                                                    class="text-slate-400 hover:text-white transition-colors">
+                                                    <i class="fa-solid fa-xmark text-2xl"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <video id="cameraFeed"
+                                            class="w-full h-64 bg-black rounded-2xl object-cover mb-4" autoplay
+                                            playsinline></video>
+                                        <button type="button" id="btnCapture"
+                                            class="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/30">
+                                            <i class="fa-solid fa-circle-dot mr-2"></i> Jepret Gambar!
+                                        </button>
+                                    </div>
+                                </div>
+                                <canvas id="canvas" class="hidden"></canvas>
+
+                                <div id="fileNameDisplay" class="text-sm text-emerald-400 font-mono hidden text-center">
+                                </div>
+
+                                <button type="submit" id="btnPredict"
+                                    class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow transition bg-purple-600 hover:bg-purple-500 cursor-not-allowed opacity-50"
+                                    disabled>
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>Analisis Citra</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-slate-950 rounded-2xl p-6 border border-slate-800 flex flex-col items-center justify-center text-center relative overflow-hidden">
+
+                        <div id="waitingState" class="flex flex-col items-center gap-3">
+                            <div
+                                class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-600 text-2xl mb-2">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm">Hasil prediksi akan muncul di sini</p>
+                        </div>
+
+                        <div id="loadingState" class="hidden flex-col items-center gap-3">
+                            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-purple-500 mb-2"></i>
+                            <p class="text-purple-300 text-sm font-semibold animate-pulse">Memproses dengan
+                                MobileNetV2...</p>
+                        </div>
+
+                        <div id="resultState" class="hidden w-full flex-col items-center">
+                            <img id="previewImage" src="" alt="Preview"
+                                class="w-48 h-48 object-cover rounded-xl border-4 border-slate-800 shadow-lg mb-6">
+
+                            <div class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Hasil
+                                    Diagnosa AI</p>
+                                <h3 id="resultLabel" class="text-2xl font-black text-white tracking-wide mb-2">MATURE
+                                </h3>
+                            </div>
+                            <div id="suggestionBox"
+                                class="w-full mt-5 p-4 bg-slate-800/80 rounded-xl border border-slate-700 hidden text-left">
+                                <h3 class="text-xs font-bold text-purple-400 mb-1.5 uppercase tracking-wider"><i
+                                        class="fa-solid fa-user-doctor mr-2"></i>Saran Penanganan</h3>
+                                <p id="suggestionText" class="text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const btnPredict = document.getElementById('btnPredict');
+        const uploadForm = document.getElementById('uploadForm');
+
+        const waitingState = document.getElementById('waitingState');
+        const loadingState = document.getElementById('loadingState');
+        const resultState = document.getElementById('resultState');
+
+        // Handle pemilihan file
+        // Handle pemilihan file
+        fileInput.addEventListener('change', function (e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+
+                // Nampilin nama file dan aktifin tombol
+                fileNameDisplay.textContent = "File: " + file.name;
+                fileNameDisplay.classList.remove('hidden');
+                btnPredict.disabled = false;
+                btnPredict.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                // Reset panel kanan ke status waiting
+                waitingState.classList.remove('hidden');
+                resultState.classList.add('hidden');
+
+                // --- FITUR BARU: Nampilin Preview di Kotak Upload ---
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const previewImg = document.getElementById('previewUpload');
+                    const placeholder = document.getElementById('uploadPlaceholder');
+                    const dropZone = document.getElementById('dropZone');
+
+                    // Set sumber gambar dan tampilkan
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+
+                    // Ubah border biar lebih estetik pas ada gambar
+                    dropZone.classList.remove('border-slate-700', 'border-dashed');
+                    dropZone.classList.add('border-purple-500', 'border-solid', 'shadow-lg');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle Submit form
+        uploadForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!fileInput.files[0]) return;
+
+            // UI Loading state
+            waitingState.classList.add('hidden');
+            resultState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            loadingState.classList.add('flex');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('https://dicorzki-skrin-in.hf.space/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI hasil
+                    // Tambahin ?t=angka_acak biar browser dipaksa download ulang gambarnya
+                    document.getElementById('previewImage').src = data.image_url + '?t=' + new Date().getTime();
+                    const labelEl = document.getElementById('resultLabel');
+                    labelEl.textContent = data.label;
+                    // 1. Sembunyikan gambar dan tampilkan ulang ikon awan
+                    const previewImg = document.getElementById('previewUpload');
+                    const placeholder = document.getElementById('uploadPlaceholder');
+                    const dropZone = document.getElementById('dropZone');
+
+                    previewImg.classList.add('hidden');
+                    previewImg.src = '';
+                    placeholder.classList.remove('hidden');
+
+                    // 2. Kembalikan style border ke bentuk awal (garis putus-putus)
+                    dropZone.classList.add('border-slate-700', 'border-dashed');
+                    dropZone.classList.remove('border-purple-500', 'border-solid', 'shadow-lg');
+
+                    // 3. Reset input file biar bisa milih file yang sama lagi kalau mau
+                    document.getElementById('fileInput').value = '';
+
+                    // 4. (Opsional) Sembunyikan tulisan nama file & matiin lagi tombolnya
+                    fileNameDisplay.classList.add('hidden');
+                    btnPredict.disabled = true;
+                    btnPredict.classList.add('opacity-50', 'cursor-not-allowed');
+                    // Mewarnai teks berdasarkan label
+                    if (data.label === 'NORMAL') {
+                        labelEl.className = 'text-2xl font-black tracking-wide mb-2 text-emerald-400';
+                    } else if (data.label === 'IMMATURE') {
+                        labelEl.className = 'text-2xl font-black tracking-wide mb-2 text-amber-400';
+                    } else {
+                        labelEl.className = 'text-2xl font-black tracking-wide mb-2 text-red-400';
+                    }
+
+                    //document.getElementById('resultConfidence').textContent = data.confidence;
+
+                    // TARUH JS SARAN DI SINI COK!
+                    document.getElementById('suggestionText').innerText = data.suggestion;
+                    document.getElementById('suggestionBox').classList.remove('hidden');
+
+                    // KODE SETELAHNYA
+                    loadingState.classList.add('hidden');
+                    loadingState.classList.add('hidden');
+                    loadingState.classList.remove('flex');
+                    resultState.classList.remove('hidden');
+                    resultState.classList.add('flex');
+                } else {
+                    alert(data.error);
+                    loadingState.classList.add('hidden');
+                    waitingState.classList.remove('hidden');
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan pada server!');
+                loadingState.classList.add('hidden');
+                waitingState.classList.remove('hidden');
+            }
+        });
+        // --- FITUR KAMERA JALUR BYPASS ---
+        // Variable baru buat simpan status kamera
+        let currentFacingMode = 'environment'; // default kamera belakang
+
+        const btnCamera = document.getElementById('btnCamera');
+        const btnFlip = document.getElementById('btnFlip'); // Tombol flip baru
+        const cameraModal = document.getElementById('cameraModal');
+        const btnCloseCamera = document.getElementById('btnCloseCamera');
+        const cameraFeed = document.getElementById('cameraFeed');
+        const btnCapture = document.getElementById('btnCapture');
+        const canvas = document.getElementById('canvas');
+        let stream = null;
+
+        // Fungsi buat nyalain kamera (dipisah biar bisa dipanggil ulang pas flip)
+        async function startCamera(facingMode) {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
+                });
+                cameraFeed.srcObject = stream;
+                currentFacingMode = facingMode;
+
+                // --- TAMBAHKAN LOGIKA MIRROR DI SINI ---
+                if (facingMode === 'user') {
+                    cameraFeed.classList.add('mirror-mode');
+                } else {
+                    cameraFeed.classList.remove('mirror-mode');
+                }
+                // ---------------------------------------
+
+            } catch (err) {
+                alert("Gagal mengakses kamera! Error: " + err.message);
+                cameraModal.classList.add('hidden');
+            }
+        }
+
+        // Klik tombol Buka Kamera
+        btnCamera.addEventListener('click', () => {
+            cameraModal.classList.remove('hidden');
+            startCamera('environment'); // Awal buka selalu kamera belakang
+        });
+
+        // KLIK TOMBOL FLIP
+        btnFlip.addEventListener('click', () => {
+            const newMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            startCamera(newMode);
+        });
+
+        // Tutup Kamera
+        const stopCamera = () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            cameraModal.classList.add('hidden');
+        };
+
+        btnCloseCamera.addEventListener('click', stopCamera);
+
+        // Jepret Foto (Tetap sama kayak sebelumnya)
+        // --- JEPinput GAMBAR DARI KAMERA DENGAN EFEK MIRROR ---
+        btnCapture.addEventListener('click', () => {
+            // 1. Atur ukuran canvas sesuai resolusi video
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            const ctx = canvas.getContext('2d');
+
+            // 2. Cek apakah kamera depan (mirror) lagi aktif
+            if (currentFacingMode === 'user') {
+                // --- JURUS MIRROR CANVAS ---
+                // Geser koordinat x ke ujung kanan canvas
+                ctx.translate(canvas.width, 0);
+                // Balikkan sumbu x (-1) biar gambarnya ke-mirror secara horizontal
+                ctx.scale(-1, 1);
+            }
+
+            // 3. Gambar frame video ke canvas (sekarang canvas-nya udah ikut mode mirror kalau kamera depan)
+            ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+
+            // 4. Proses Canvas jadi File & Upload (Sama kayak sebelumnya)
+            canvas.toBlob((blob) => {
+                const timestamp = new Date().getTime();
+                // Pakai format timestamp biar nama filenya unik (anti-cache)
+                const fileName = `foto_kamera_${timestamp}.jpg`;
+
+                const file = new File([blob], fileName, { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('fileInput').files = dataTransfer.files;
+
+                // Pancing trigger seolah-olah user milih file manual
+                const event = new Event('change');
+                document.getElementById('fileInput').dispatchEvent(event);
+
+                stopCamera();
+            }, 'image/jpeg');
+        });
+    </script>
+</body>
+
+</html>
