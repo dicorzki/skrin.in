@@ -225,7 +225,7 @@
                     const dropZone = document.getElementById('dropZone');
 
                     // Set sumber gambar dan tampilkan
-                    previewImage.src = URL.createObjectURL(fileInput.files[0]);
+                    previewImg.src = URL.createObjectURL(fileInput.files[0]);
                     previewImg.classList.remove('hidden');
                     placeholder.classList.add('hidden');
 
@@ -263,7 +263,9 @@
                 if (data.success) {
                     // Update UI hasil
                     // Tambahin ?t=angka_acak biar browser dipaksa download ulang gambarnya
-                    document.getElementById('previewImage').src = data.image_url + '?t=' + new Date().getTime();
+                   // Update UI hasil
+                    // Langsung tembak pakai gambar lokal dari HP/Laptop user biar instan
+                    document.getElementById('previewImage').src = URL.createObjectURL(fileInput.files[0]);
                     const labelEl = document.getElementById('resultLabel');
                     labelEl.textContent = data.label;
                     // 1. Sembunyikan gambar dan tampilkan ulang ikon awan
