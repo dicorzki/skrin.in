@@ -225,7 +225,7 @@
                     const dropZone = document.getElementById('dropZone');
 
                     // Set sumber gambar dan tampilkan
-                    previewImg.src = e.target.result;
+                    previewImage.src = URL.createObjectURL(fileInput.files[0]);
                     previewImg.classList.remove('hidden');
                     placeholder.classList.add('hidden');
 
